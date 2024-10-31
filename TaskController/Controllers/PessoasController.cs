@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using TaskManager.Data;
-using TaskManager.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace TaskManager.Controllers
@@ -52,7 +51,7 @@ namespace TaskManager.Controllers
                 return BadRequest();
             }
 
-            _context.Entry(pessoa).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+            _context.Entry(pessoa).State = EntityState.Modified;
 
             try
             {
@@ -67,6 +66,8 @@ namespace TaskManager.Controllers
                 throw;
             }
 
+            await AtualizarStatusPessoa(pessoa.Id);
+
             return NoContent();
         }
 
@@ -74,7 +75,7 @@ namespace TaskManager.Controllers
         public async Task<IActionResult> DeletePessoa(int id)
         {
             var pessoa = await _context.Pessoas.Include(p => p.Tarefas).FirstOrDefaultAsync(p => p.Id == id);
-            if (pessoa == null || pessoa.Tarefas.Any(t => t.Status != "concluída"))
+            if (pessoa == null || pessoa.Tarefas.Any(t => !t.Concluida))
             {
                 return BadRequest("Pessoa não pode ser excluída enquanto houver tarefas pendentes.");
             }
@@ -88,6 +89,18 @@ namespace TaskManager.Controllers
         private bool PessoaExists(int id)
         {
             return _context.Pessoas.Any(e => e.Id == id);
+        }
+
+        private async Task AtualizarStatusPessoa(int pessoaId)
+        {
+            var tarefas = await _context.Tarefas.Where(t => t.PessoaId == pessoaId).ToListAsync();
+            var pessoa = await _context.Pessoas.FindAsync(pessoaId);
+
+            if (pessoa != null && tarefas.All(t => t.Concluida))
+            {
+                pessoa.Status = StatusPessoa.Disponível;
+                await _context.SaveChangesAsync();
+            }
         }
     }
 }

@@ -1,15 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace TaskManager.Models
+﻿public enum StatusPessoa
 {
-    public class Pessoa
-    {
-        public int Id { get; set; }
-        public string Nome { get; set; }
-        public string Email { get; set; }
-        public DateTime DataNascimento { get; set; }
+    Disponível,
+    Ocupado,
+    Indisponível
+}
 
-        public List<Tarefa> Tarefas { get; set; } = new();
-    }
+public class Pessoa
+{
+    public int Id { get; set; }
+    public string Nome { get; set; }
+    public string Email { get; set; }
+    public DateTime DataNascimento { get; set; }
+    public StatusPessoa Status { get; set; }
+    public List<Tarefa> Tarefas { get; set; } = new();
 }
